@@ -23,7 +23,12 @@ func NewWatcher(dur time.Duration) chan Event {
 }
 
 func watchCpu(ch chan Event, dur time.Duration) {
-	defer recover()
+	defer func() {
+		if e := recover(); e != nil {
+			err := fmt.Errorf("watchCpu failed: %v", e)
+			ch <- Event{Usage: 0.0, Error: err}
+		}
+	}()
 
 	idlePre, totalPre, err := getCurCpu()
 	if err != nil {
